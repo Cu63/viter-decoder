@@ -2,9 +2,10 @@
 #include <iostream>
 
 int main() {
-    Viter signal;
+    Viter signal(4);
 
-//    signal.readSignal();
+    signal.readSignal();
     signal.decode();
+    signal.printSignalOut();
     return 0;
 }

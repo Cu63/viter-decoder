@@ -1,19 +1,15 @@
 #include "../header/viter.hpp"
 #include <iostream>
 #include <iomanip>
+#include <cstdlib>
+#include <cmath>
+#include <ctime>
 
 
-Viter::Viter(int k) {
+Viter::Viter(int k, double errorProbability) {
     this->k = k;
-//    codeIn = std::vector<short> {3, 0, 2, 0, 0};
-    codeIn.push_back(3);
-    codeIn.push_back(0);
-    codeIn.push_back(2);
-    codeIn.push_back(0);
-    codeIn.push_back(0);
-    signalIn.resize(codeIn.size());
-    codeOut.resize(codeIn.size());
-    signalOut.resize(signalIn.size());
+    errP = errorProbability;
+    srand(time(NULL));
 }
 
 void Viter::readSignal() {
@@ -22,12 +18,14 @@ void Viter::readSignal() {
     std::cout << "Enter signal using 0 and 1: ";
     while (std::cin >> signal && (0 == signal || 1 == signal)) {
         signalIn.push_back(signal);
-        codeIn.push_back(encode(signal));
+        codeIn.push_back(encode(signal) ^ error());
     }
+    signalOut.resize(signalIn.size());
     /*
-    std::cout << "state:\n";
-    for (int i = 0; i < signalIn.size(); i++) 
-        std::cout << signalIn[i] << " ";
+    std::cout << "codeIn:\n";
+    for (int i = 0; i < codeIn.size(); i++) 
+        std::cout << codeIn[i] << " ";
+    std::cout << std::endl;
     std::cout << "\ncodes:\n";
     for (int i = 0; i < codeIn.size(); i++)
         std::cout << (codeIn[i] >> 1) << (codeIn[i] & 1) << " ";
@@ -91,12 +89,15 @@ void Viter::decode() {
             nextIndexAndState(state, index, i, j);
         }
     }
+    short X;
 
-    codeOut[codeOut.size() - 1] = findMin(state);
-
-    for (int i = codeOut.size() - 1; i > 0; --i) {
-        codeOut[i - 1] = index[codeOut[i]][i];
+    X = findMin(state);
+    signalOut[signalOut.size() - 1] = X >> 1;
+    for (int i = signalOut.size() - 1; i > 0; --i) {
+        signalOut[i - 1] = index[X][i] >> 1;
+        X = index[X][i];
     }
+    /*
 
     std::cout << "Index:\n";
     for (int i = 0; i < k; ++i) {
@@ -111,10 +112,7 @@ void Viter::decode() {
             std::cout << std::setw(2) << state[i][j] << " ";
         std::cout << std::endl;
     }
-
-    for (int i = 0; i < codeOut.size(); ++i)
-        std::cout << codeOut[i] << " ";
-    std::cout << std::endl;
+*/
 }
 
 void Viter::nextIndexAndState(codeMatrix &s, codeMatrix &ind, int x, int y) {
@@ -142,6 +140,22 @@ void Viter::nextIndexAndState(codeMatrix &s, codeMatrix &ind, int x, int y) {
   //  std::cout << "\n";
     ind[y][x] = index;
     s[y][x] = min;
+}
+
+short Viter::error() {
+    int err;
+    if ((err = abs(rand())) <= errP * RAND_MAX) {
+        std::cout << "Error" << std::endl;
+        return err % 3 + 1;
+    }
+    return 0;
+}
+
+void Viter::printSignalOut() {
+    std::cout << "Signal out: ";
+    for (int i = 0; i < signalOut.size(); ++i)
+        std::cout << signalOut[i] << " ";
+    std::cout << std::endl;
 }
 
 /*

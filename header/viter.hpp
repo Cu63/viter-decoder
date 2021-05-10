@@ -16,18 +16,21 @@ class Viter {
 
 
         int k; //states count
+        double errP;
         std::vector<short> signalIn;
         std::vector<short> signalOut;
         std::vector<short> codeIn;
-        std::vector<short> codeOut;
 
         short calcHammingDistance(short a, short b);
-        short setIndex(codeMatrix &s, codeMatrix &ind, int x, int y);
+        void nextIndexAndState(codeMatrix &s, codeMatrix &ind, int x, int y);
+        short findMin(codeMatrix &s);
+        short error();
     public:
-        Viter(int k = 4);
+        Viter(int k = 4, double errP = 10e-4);
         void readSignal();
         short encode(short a);
         void decode();
+        void printSignalOut();
 //        ~Viter();
 };
 
