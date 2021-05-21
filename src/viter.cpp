@@ -21,16 +21,24 @@ void Viter::readSignal() {
         codeIn.push_back(encode(signal) ^ error());
     }
     signalOut.resize(signalIn.size());
-    /*
-    std::cout << "codeIn:\n";
-    for (int i = 0; i < codeIn.size(); i++) 
-        std::cout << codeIn[i] << " ";
-    std::cout << std::endl;
-    std::cout << "\ncodes:\n";
-    for (int i = 0; i < codeIn.size(); i++)
-        std::cout << (codeIn[i] >> 1) << (codeIn[i] & 1) << " ";
-    std::cout << "\n";
-    */
+}
+
+int Viter::generateSignal(int n) {
+    int errCounter;
+
+    signalIn.resize(n);
+    signalOut.resize(n);
+    codeIn.resize(n);
+    errCounter = 0;
+    for (int i = 0; i < n; i++) {
+        short err;
+
+        signalIn[i] = abs(rand() % 2);
+        if ((err = error()) != 0)
+            errCounter++;
+        codeIn[i] = encode(signalIn[i] ^ err);
+    }
+    return errCounter;
 }
 
 short Viter::calcHammingDistance(short a, short b) {
@@ -49,6 +57,17 @@ short Viter::encode(short a) {
     tmp |= (a ^ b) ^ c;
     c = b;
     b = a;
+    return tmp;
+}
+
+short Viter::encode(short a, short b) {
+    static short c = 0;
+    static short d = 0;
+    short tmp;
+
+    tmp = (c << 2) | ((a ^ d) << 1) | b;
+    d = c;
+    c = a;
     return tmp;
 }
 
@@ -79,13 +98,6 @@ void Viter::decode() {
 
     for (int i = 1; i < state[0].size(); ++i) {
         for (int j = 0; j < k; ++j) {
-            /*
-            short ind;
-            ind = setIndex(state, index, i, j);
-            index[j][i] = ind;
-            state[j][i] = state[ind][i - 1]
-                + calcHammingDistance(A[j][ind], codeIn[i]);
-                */
             nextIndexAndState(state, index, i, j);
         }
     }
@@ -145,7 +157,6 @@ void Viter::nextIndexAndState(codeMatrix &s, codeMatrix &ind, int x, int y) {
 short Viter::error() {
     int err;
     if ((err = abs(rand())) <= errP * RAND_MAX) {
-        std::cout << "Error" << std::endl;
         return err % 3 + 1;
     }
     return 0;
@@ -158,6 +169,31 @@ void Viter::printSignalOut() {
     std::cout << std::endl;
 }
 
+int Viter::cmpInOutSignals() {
+    int err;
+
+    err = 0;
+    /*
+    std::cout << "Signal in:  ";
+    for (int i = 0; i < signalIn.size(); ++i)
+        std::cout << signalIn[i] << " ";
+    std::cout << std::endl;
+
+    std::cout << "Signal out: ";
+    for (int i = 0; i < signalOut.size(); ++i)
+        std::cout << signalOut[i] << " ";
+    std::cout << std::endl;
+    */
+
+    for (int i = 0; i < signalIn.size(); ++i)
+        if (signalIn[i] != signalOut[i])
+            err++;
+    return err;
+}
+
+double Viter::modeling(short s, double t) {
+    return sqrt(2.0 / T) * cos(2 * pi * f * t - signal[s]);
+}
 /*
 Viter::~Viter() {
 }
