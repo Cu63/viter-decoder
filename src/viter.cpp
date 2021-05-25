@@ -1,15 +1,40 @@
 #include "../header/viter.hpp"
 #include <iostream>
 #include <iomanip>
-#include <cstdlib>
 #include <cmath>
-#include <ctime>
 
 
-Viter::Viter(int k, double errorProbability) {
-    this->k = k;
-    errP = errorProbability;
-    srand(time(NULL));
+Viter::Viter(double T, double dt) {
+    k = 4;
+    this->T = T;
+    this->dt = dt;
+    f = 1200;
+
+//    srand(time(NULL));
+    //generate signals from 0 to T
+    signalVector.resize(8);;
+    for (int i = 0; i < signalVector.size(); ++i) {
+        for (double t = 0; t < T; t += dt) {
+            signalVector[i].push_back(modeling(i, t));
+        }
+    }
+
+    //calculate phi1 and phi2
+    for (double t = 0; t < T; t += dt) {
+        phi1.push_back(sqrt(2.0 / T) * cos(2.0 * pi * f * t));
+        phi2.push_back(sqrt(2.0 / T) * sin(2.0 * pi * f * t));
+    }
+
+    //calculate signals coefficients
+    for (int i = 0; i < signalVector.size(); ++i) {
+        std::pair<double, double> tmp {0, 0};
+
+        for (int j = 0; j < signalVector[0].size(); ++j) {
+            tmp.first += signalVector[i][j] * phi1[j];
+            tmp.second += signalVector[i][j] * phi2[j];
+        }
+        signalCoefficients.push_back(tmp);
+    }
 }
 
 void Viter::readSignal() {
@@ -18,27 +43,25 @@ void Viter::readSignal() {
     std::cout << "Enter signal using 0 and 1: ";
     while (std::cin >> signal && (0 == signal || 1 == signal)) {
         signalIn.push_back(signal);
-        codeIn.push_back(encode(signal) ^ error());
+        codeIn.push_back(encode(signal));
     }
     signalOut.resize(signalIn.size());
 }
 
-int Viter::generateSignal(int n) {
-    int errCounter;
+void Viter::generateSignal(int n) {
 
     signalIn.resize(n);
     signalOut.resize(n);
     codeIn.resize(n);
-    errCounter = 0;
-    for (int i = 0; i < n; i++) {
-        short err;
 
-        signalIn[i] = abs(rand() % 2);
-        if ((err = error()) != 0)
-            errCounter++;
-        codeIn[i] = encode(signalIn[i] ^ err);
+    for (int i = 0; i < n; i++) {
+        signalIn[i] = abs(rand() % 4);
+        std::cout << "Encoder input: " 
+            << (signalIn[i] >> 1) << (signalIn[i] & 1) << std::endl;
+        codeIn.push_back(encode((signalIn[i] >> 1), (signalIn[i] & 1)));
+        std::cout << "Encoder output: " 
+            << (codeIn.back() >> 1) << (codeIn.back() & 1) << std::endl;
     }
-    return errCounter;
 }
 
 short Viter::calcHammingDistance(short a, short b) {
@@ -60,6 +83,7 @@ short Viter::encode(short a) {
     return tmp;
 }
 
+//generate 3 bits from 2
 short Viter::encode(short a, short b) {
     static short c = 0;
     static short d = 0;
@@ -154,14 +178,6 @@ void Viter::nextIndexAndState(codeMatrix &s, codeMatrix &ind, int x, int y) {
     s[y][x] = min;
 }
 
-short Viter::error() {
-    int err;
-    if ((err = abs(rand())) <= errP * RAND_MAX) {
-        return err % 3 + 1;
-    }
-    return 0;
-}
-
 void Viter::printSignalOut() {
     std::cout << "Signal out: ";
     for (int i = 0; i < signalOut.size(); ++i)
@@ -173,18 +189,6 @@ int Viter::cmpInOutSignals() {
     int err;
 
     err = 0;
-    /*
-    std::cout << "Signal in:  ";
-    for (int i = 0; i < signalIn.size(); ++i)
-        std::cout << signalIn[i] << " ";
-    std::cout << std::endl;
-
-    std::cout << "Signal out: ";
-    for (int i = 0; i < signalOut.size(); ++i)
-        std::cout << signalOut[i] << " ";
-    std::cout << std::endl;
-    */
-
     for (int i = 0; i < signalIn.size(); ++i)
         if (signalIn[i] != signalOut[i])
             err++;
@@ -192,9 +196,23 @@ int Viter::cmpInOutSignals() {
 }
 
 double Viter::modeling(short s, double t) {
-    return sqrt(2.0 / T) * cos(2 * pi * f * t - signal[s]);
+    return sqrt(2.0 / T) * cos(2.0 * pi * f * t - signal[s]);
 }
+
+std::pair<double, double> Viter::demodeling(short si) {
+    std::pair<double, double> tmp {0, 0};
+
+    for (int i = 0; i < signalVector[0].size(); ++i) {
+        tmp.first += signalVector[si][i] * phi1[i];
+        tmp.second += signalVector[si][i] * phi2[i];
+    }
+    std::cout << "r1: " << tmp.first << std::endl;
+    std::cout << "r2: " << tmp.second << std::endl;
+}
+
 /*
-Viter::~Viter() {
+std::vector<double> Viter::SNR(std::pair<double> r, int dB) {
+    double sigma;
+
 }
 */
