@@ -4,17 +4,19 @@
 #include <vector>
 #include <ctime>
 #include <cstdlib>
+#include <utility>
 
 const double pi = 3.14159265358979323846;
 typedef std::vector<std::vector<short>> codeMatrix;
 
 class Viter {
     private:
+        //possible ways between states
         const short A[4][4] = {
-            { 0,  3, -1, -1},
-            { -1,  -1,  1,  2},
-            { 3,  0, -1, -1},
-            {-1, -1,  2,  1}
+            { 0,  2, -1, -1},
+            {-1, -1,  4,  6},
+            { 2,  0, -1, -1},
+            {-1, -1,  6,  4}
         };
 
         const double signal[8] = {
@@ -32,26 +34,21 @@ class Viter {
         double T;
         double dt;
         int f;
-        std::vector<short> signalIn;
-        std::vector<short> signalOut;
-        std::vector<short> codeIn;
+        double E; //energy of signal
+
         std::vector<std::vector<double>> signalVector;
         std::vector<std::pair<double, double>> signalCoefficients;
         std::vector<double> phi1;
         std::vector<double> phi2;
 
-        short calcHammingDistance(short a, short b);
-        void nextIndexAndState(codeMatrix &s, codeMatrix &ind, int x, int y);
-        short findMin(codeMatrix &s);
+        double calcEuclidDistance(std::pair<double, double> s,
+                std::pair<double, double> r);
+        std::pair<double, short> nextState(std::pair<double, double> r,
+                short to, short from);
     public:
         Viter(double T, double dt);
-        void readSignal();
-        void  generateSignal(int n = 16);
-        short encode(short a);
         short encode(short a, short b);
-        void decode();
-        void printSignalOut();
-        int cmpInOutSignals();
+        short decode(std::pair<double, double> r);
         std::vector<double> SNR(std::vector<double> r, int dB);
 
         double modeling(short signal, double t);
