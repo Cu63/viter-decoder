@@ -35,6 +35,7 @@ class Viter {
         double dt;
         int f;
         double E; //energy of signal
+        int dB;
 
         std::vector<std::vector<double>> signalVector;
         std::vector<std::pair<double, double>> signalCoefficients;
@@ -45,11 +46,13 @@ class Viter {
                 std::pair<double, double> r);
         std::pair<double, short> nextState(std::pair<double, double> r,
                 short to, short from);
+        double trapz(std::vector<double> s, std::vector<double> phi);
+        double trapz(std::vector<double> s);
     public:
-        Viter(double T, double dt);
+        Viter(double T, double dt, int dB);
         short encode(short a, short b);
         short decode(std::pair<double, double> r);
-        std::vector<double> SNR(std::vector<double> r, int dB);
+        std::vector<double> SNR(std::vector<double> r);
 
         double modeling(short signal, double t);
         std::pair<double, double> demodeling(short si);

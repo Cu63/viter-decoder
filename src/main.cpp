@@ -4,31 +4,39 @@
 int main() {
     double T;
     double dt;
+    int errMax;
 
     srand(time(0));
     T = 0.05;
     dt = T / 100;
-    Viter system(T, dt);
+    errMax = 1000;
     std::cout << "Start\n";
-    while (1) {
-//    for (int i = 0; i < 10; i++) {
-        int s;
-        int r;
-        short si;
-        std::pair<double, double> ri;
+    for (int i = 1; i <= 10; i++) {
+        Viter system(T, dt, i);
+        unsigned long long testN;
+        double errCount;
 
-        s = rand() % 4;
-//        std::cout << "Signal in: " << (s >> 1) << (s & 1)<< std::endl;
-        si = system.encode(s >> 1, s & 1);
-        //std::cout << "Code: " << si << std::endl;
-        ri = system.demodeling(si);
-        r = system.decode(ri);
-//        std::cout << "Signal out: " << (r >> 1) << (r & 1) << std::endl;
-        if (s != r) {
-            std::cout << "Error!\n";
-            return 1;
+        testN = errCount = 0;
+    while (errCount < errMax) {
+            int s;
+            int r;
+            short si;
+            std::pair<double, double> ri;
+
+            s = rand() % 4;
+//            std::cout << "Signal in: " << s << std::endl;
+            si = system.encode(s >> 1, s & 1);
+            ri = system.demodeling(si);
+            r = system.decode(ri);
+ //           std::cout << "Signal out: " << r << std::endl;
+            if (r != s) {
+                errCount++;
+  //              std::cout << "Error's num: " << errCount << std::endl;
+            }
+            testN++;
         }
+        std::cout << "For dB " << i << " error probability is "
+            << errCount / testN << std::endl;
     }
-
     return 0;
 }
