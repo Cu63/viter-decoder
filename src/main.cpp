@@ -9,7 +9,7 @@ int main() {
     srand(time(0));
     T = 0.05;
     dt = T / 100;
-    errMax = 1000;
+    errMax = 1;
     std::cout << "Start\n";
     for (int i = 1; i <= 10; i++) {
         Viter system(T, dt, i);
@@ -28,10 +28,12 @@ int main() {
             si = system.encode(s >> 1, s & 1);
             ri = system.demodeling(si);
             r = system.decode(ri);
- //           std::cout << "Signal out: " << r << std::endl;
+//            std::cout << "Code in: " << si;
+//            std::cout << "Signal out: " << r << std::endl;
+            std::cout << "s = " << s << ", r = " << r << std::endl;
             if (r != s) {
                 errCount++;
-  //              std::cout << "Error's num: " << errCount << std::endl;
+                std::cout << "Error's num: " << errCount << std::endl;
             }
             testN++;
         }

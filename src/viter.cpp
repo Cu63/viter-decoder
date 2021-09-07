@@ -21,10 +21,12 @@ Viter::Viter(double T, double dt, int dB) {
     }
 
     //calculate signal energy
-    E = 0;
+    E = trapz(signalVector[0], signalVector[0]);
+    /*
     for (int i = 0; i < signalVector[0].size(); ++i) {
         E += pow(signalVector[0][i], 2);
     }
+    */
 
     //calculate phi1 and phi2
     for (double t = 0; t < T; t += dt) {
@@ -36,9 +38,9 @@ Viter::Viter(double T, double dt, int dB) {
     for (int i = 0; i < signalVector.size(); ++i) {
         std::pair<double, double> tmp {0, 0};
 
-        signalCoefficients.push_back(tmp);
         tmp.first = trapz(signalVector[i], phi1);
         tmp.second = trapz(signalVector[i], phi2);
+        signalCoefficients.push_back(tmp);
     }
 }
 
@@ -71,7 +73,8 @@ short Viter::decode(std::pair<double, double> r) {
     }
 
     lastState = index;
-    return (lastState & 0X02) + (state[lastState].second & 1);
+//    std::cout << ", code out: " << state[lastState].second << std::endl;
+    return (lastState & 2) + (state[lastState].second & 1);
 }
 
 std::pair<double, short> Viter::nextState(std::pair<double, double> r, 
@@ -89,9 +92,9 @@ std::pair<double, short> Viter::nextState(std::pair<double, double> r,
         s2 = signalCoefficients[A[to][from] + 1];
         tmp1.first = calcEuclidDistance(s1, r);
         tmp2.first = calcEuclidDistance(s2, r);
-//        std::cout << "tmp1: " << tmp1.first << " " << tmp1.second << std::endl;
-//        std::cout << "tmp2: " << tmp2.first << " " << tmp2.second << std::endl;
-
+    //    std::cout << "r: " << r.first << " " << r.second << std::endl;
+     //   std::cout << "s1: " << s1.first << " " << s1.second << std::endl;
+      //  std::cout << "s2: " << s2.first << " " << s2.second << std::endl;
         if (tmp1.first < res.first || res.second == -1)
             res = tmp1;
         if (tmp2.first < res.first || res.second == -1)
@@ -114,7 +117,21 @@ std::pair<double, double> Viter::demodeling(short si) {
     std::pair<double, double> tmp {0, 0};
     std::vector<double> r (signalVector[si]);
 
-//    r = SNR(signalVector[si]);
+    r = SNR(signalVector[si]);
+
+    std::cout << "---------\n";
+    std::cout << "s: ";
+    for (int i = 0; i < 10; i++) {
+        std::cout << signalVector[si][i] << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "r: ";
+    for (int i = 0; i < 10; i++) {
+        std::cout << r[i] << " ";
+    }
+    std::cout << std::endl;
+
     tmp.first = trapz(r, phi1);
     tmp.second = trapz(r, phi2);
 
@@ -137,7 +154,7 @@ std::vector<double> Viter::SNR(std::vector<double> r) {
     N0 = E / SNR; 
     sigma = sqrt(N0 / 2);
 
-    std::normal_distribution<double> distribution(0.0, sigma);
+    std::normal_distribution<double> distribution(0.5, sigma);
     for (int i = 0; i < r.size(); ++i) {
         double n;
         n = distribution(generator);
