@@ -20,6 +20,16 @@ Viter::Viter(double T, double dt, int dB) {
         }
     }
 
+    /*
+    for (int i = 0; i < signalVector.size(); ++i) {
+        std::cout << "signal " << i << ": ";
+        for (double t = 0; t < 10; t++) {
+            std::cout << signalVector[i][t] << " ";
+        }
+        std::cout << std::endl;
+    }
+    */
+
     //calculate signal energy
     E = trapz(signalVector[0], signalVector[0]);
     /*
@@ -119,6 +129,7 @@ std::pair<double, double> Viter::demodeling(short si) {
 
     r = SNR(signalVector[si]);
 
+    /*
     std::cout << "---------\n";
     std::cout << "s: ";
     for (int i = 0; i < 10; i++) {
@@ -131,6 +142,7 @@ std::pair<double, double> Viter::demodeling(short si) {
         std::cout << r[i] << " ";
     }
     std::cout << std::endl;
+    */
 
     tmp.first = trapz(r, phi1);
     tmp.second = trapz(r, phi2);
@@ -148,17 +160,17 @@ std::vector<double> Viter::SNR(std::vector<double> r) {
     double SNR;
     double N0;
     std::vector<double> tmp (r);
-    std::default_random_engine generator;
+    static std::default_random_engine generator;
 
-    SNR = pow(10, (dB / 10));
+    SNR = pow(10.0, (dB / 10.0));
     N0 = E / SNR; 
     sigma = sqrt(N0 / 2);
 
-    std::normal_distribution<double> distribution(0.5, sigma);
+    static std::normal_distribution<double> distribution(0.0, sigma);
     for (int i = 0; i < r.size(); ++i) {
         double n;
         n = distribution(generator);
-        tmp[i] += n;
+        tmp[i] += 2 * n;
     }
     return tmp;
 }

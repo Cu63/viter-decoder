@@ -7,11 +7,13 @@ int main() {
     int errMax;
 
     srand(time(0));
-    T = 0.05;
+    T = 0.1;
     dt = T / 100;
-    errMax = 1;
+    errMax = 20;
+//    Viter system(T, dt, 1);
     std::cout << "Start\n";
     for (int i = 1; i <= 10; i++) {
+        std::cout << "db - " << i << "\n";
         Viter system(T, dt, i);
         unsigned long long testN;
         double errCount;
@@ -30,7 +32,7 @@ int main() {
             r = system.decode(ri);
 //            std::cout << "Code in: " << si;
 //            std::cout << "Signal out: " << r << std::endl;
-            std::cout << "s = " << s << ", r = " << r << std::endl;
+//            std::cout << "s = " << s << ", r = " << r << std::endl;
             if (r != s) {
                 errCount++;
                 std::cout << "Error's num: " << errCount << std::endl;
@@ -38,7 +40,7 @@ int main() {
             testN++;
         }
         std::cout << "For dB " << i << " error probability is "
-            << errCount / testN << std::endl;
+            << (double)errCount / testN << std::endl;
     }
     return 0;
 }
